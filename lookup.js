@@ -22,16 +22,16 @@
     card.id = CARD_ID;
     card.dir = "rtl";
     card.style.cssText =
-      "max-width:1400px;margin:12px auto 0;padding:0 16px;font-family:'Tajawal',sans-serif";
+      "max-width:1400px;margin:12px auto 0;padding:0 16px;font-family:'Tajawal',sans-serif;display:flex;justify-content:center";
 
     var box = document.createElement("div");
     box.style.cssText =
-      "background:#fff;border:2px solid #0F0F0F;border-bottom:4px solid #FFD700;border-radius:20px;padding:16px";
+      "background:#fff;border:2px solid #0F0F0F;border-bottom:4px solid #FFD700;border-radius:20px;padding:16px;width:100%;max-width:600px";
     card.appendChild(box);
 
     var title = document.createElement("div");
     title.textContent = "🔎 بحث عن فرع العضوية";
-    title.style.cssText = "font-weight:800;font-size:15px;margin-bottom:12px";
+    title.style.cssText = "font-weight:800;font-size:15px;margin-bottom:12px;text-align:center";
     box.appendChild(title);
 
     var grid = document.createElement("div");
@@ -62,7 +62,7 @@
     branchInput.setAttribute("placeholder", "يظهر تلقائياً");
 
     var status = document.createElement("div");
-    status.style.cssText = "font-size:12px;font-weight:700;margin-top:8px;color:#6b7280";
+    status.style.cssText = "font-size:12px;font-weight:700;margin-top:8px;color:#6b7280;text-align:center";
     box.appendChild(status);
 
     numInput.addEventListener("input", function () {
