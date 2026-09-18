@@ -29,11 +29,14 @@
 <style>
 table td,table th{text-align:center!important;vertical-align:middle}
 table td>.flex{justify-content:center}
-/* Fix logout button - red with door */
-.btn-logout, button[data-action="logout"], #logoutBtn {
-  background:#DC2626 !important;
-  color:white !important;
-  border:none !important;
+/* زرار الخروج أحمر */
+button:has-text("خروج") { background:#DC2626 !important; }
+</style>
+<style>
+/* اجبار زرار الخروج يبقى احمر */
+.logout-red, [data-logout], .btn-logout {
+  background: #DC2626 !important;
+  background-color: #DC2626 !important;
 }
 </style>
 </head>
@@ -41,16 +44,9 @@ table td>.flex{justify-content:center}
   <div id="root"></div>
   
   <script>
-    // Auth check - require login every session
     (function () {
-      // استخدم sessionStorage عشان كل ما يقفل المتصفح يطلب login تاني
-      // لو عايز كل مرة حتى لو مقفلش، شيل السطرين دول وخليه يمسح دايما
-      const isAuth = sessionStorage.getItem('wd_october1_auth') === 'true' || localStorage.getItem('wd_october1_auth') === 'true';
-      if (!isAuth) {
+      if (localStorage.getItem('wd_october1_auth') !== 'true') {
         location.replace('./index.html');
-      } else {
-        // انقل التوثيق للـ session عشان المرة الجاية يطلب تاني لو قفل التاب
-        sessionStorage.setItem('wd_october1_auth', 'true');
       }
     })();
   </script>
@@ -60,61 +56,39 @@ table td>.flex{justify-content:center}
   <script src="./lookup.js" defer></script>
   <script src="./admin.js" defer></script>
   <script src="./logout.js" defer></script>
-  
-  <script>
-  // Fix logout button style - red with door icon
-  (function(){
-    function fixLogoutBtn(){
-      const buttons = document.querySelectorAll('button, a, div[role="button"]');
-      buttons.forEach(btn => {
-        const text = (btn.textContent || '').trim();
-        if(text.includes('خروج') && text.length < 20){
-          // ده زرار الخروج
-          btn.style.background = '#DC2626';
-          btn.style.backgroundColor = '#DC2626';
-          btn.style.color = 'white';
-          btn.style.border = 'none';
-          btn.style.borderRadius = '10px';
-          btn.style.fontWeight = 'bold';
-          // احذف العلامة الزرقاء القديمة وحط باب
-          // شيل اي ايموجي قديم
-          let cleanText = text.replace(/📤|📥|🚪|🔵|🟦|➡️|🚶|❌|🔒|\uD83D.*/g, '').trim();
-          // لو لسه فيه كلمة خروج بس
-          if(cleanText.includes('خروج')){
-            btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;justify-content:center;width:100%"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> خروج</span>';
-          }
-          btn.classList.add('btn-logout-fixed');
-        }
-      });
-    }
-    // شغلها كل شوية لحد ما الـ admin.js يحمل
-    const interval = setInterval(fixLogoutBtn, 500);
-    setTimeout(()=>clearInterval(interval), 10000);
-    document.addEventListener('DOMContentLoaded', fixLogoutBtn);
-    window.addEventListener('load', fixLogoutBtn);
-    // مراقب لو الصفحة اتغيرت ديناميكي
-    const observer = new MutationObserver(fixLogoutBtn);
-    observer.observe(document.body, {childList:true, subtree:true});
-  })();
-  </script>
 
   <script>
-  // تأكيد ان صفحة الـ login تطلب user/pass كل مرة
+  // تصليح زرار الخروج فقط - بدون ما نبوظ اي حاجة
   (function(){
-    // لما يدوس خروج، امسح كل حاجة
-    window.addEventListener('load', ()=>{
-      setTimeout(()=>{
-        const logoutBtns = Array.from(document.querySelectorAll('button')).filter(b=>b.textContent.includes('خروج'));
-        logoutBtns.forEach(b=>{
-          b.addEventListener('click', ()=>{
-            localStorage.removeItem('wd_october1_auth');
-            sessionStorage.removeItem('wd_october1_auth');
-            localStorage.clear();
-            sessionStorage.clear();
-          }, true);
+    function paintLogout(){
+      try{
+        document.querySelectorAll('button').forEach(function(b){
+          var t = (b.innerText || b.textContent || '').trim();
+          // لو الزرار مكتوب عليه خروج
+          if(t === 'خروج' || t.includes('خروج') && t.length < 15){
+            b.style.setProperty('background', '#DC2626', 'important');
+            b.style.setProperty('background-color', '#DC2626', 'important');
+            b.style.setProperty('color', 'white', 'important');
+            b.style.setProperty('border', 'none', 'important');
+            // شيل اي ايموجي ازرق قديم وحط باب
+            if(!b.dataset.fixed){
+              // احتفظ بكلمة خروج بس
+              b.innerHTML = '🚪 خروج';
+              b.dataset.fixed = '1';
+            }
+          }
         });
-      }, 1000);
-    });
+      }catch(e){ console.log(e); }
+    }
+    // حاول كذا مرة لان admin.js بيحمل متأخر
+    var c=0;
+    var iv = setInterval(function(){
+      paintLogout();
+      c++;
+      if(c>20) clearInterval(iv);
+    }, 500);
+    document.addEventListener('DOMContentLoaded', paintLogout);
+    window.addEventListener('load', paintLogout);
   })();
   </script>
 
