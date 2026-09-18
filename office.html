@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cards Delivery</title>
+  <link rel="icon" type="image/png" href="./favicon.png">
+<style>
+table td,table th{text-align:center!important;vertical-align:middle}
+table td>.flex{justify-content:center}
+/* زرار الخروج أحمر */
+button:has-text("خروج") { background:#DC2626 !important; }
+</style>
+<style>
+/* اجبار زرار الخروج يبقى احمر */
+.logout-red, [data-logout], .btn-logout {
+  background: #DC2626 !important;
+  background-color: #DC2626 !important;
+}
+</style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script>
+    (function () {
+      // يسمح بالدخول لو فيه session او لو فيه localStorage (Remember me)
+      var hasSession = sessionStorage.getItem('wd_october1_auth') === 'true';
+      var hasLocal = localStorage.getItem('wd_october1_auth') === 'true';
+      if (!hasSession && !hasLocal) {
+        location.replace('./index.html');
+      }
+      // لو داخل بـ localStorage، انشئ session كمان عشان يفضل شغال في التاب ده
+      if (hasLocal && !hasSession) {
+        sessionStorage.setItem('wd_october1_auth', 'true');
+      }
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+  <script src="./texts.js"></script>
+  <script src="./sync.js"></script>
+  <script src="./lookup.js" defer></script>
+  <script src="./admin.js" defer></script>
+  <script src="./logout.js" defer></script>
+
+  <script>
+  // تصليح زرار الخروج فقط - بدون ما نبوظ اي حاجة
+  (function(){
+    function paintLogout(){
+      try{
+        document.querySelectorAll('button').forEach(function(b){
+          var t = (b.innerText || b.textContent || '').trim();
+          // لو الزرار مكتوب عليه خروج
+          if(t === 'خروج' || t.includes('خروج') && t.length < 15){
+            b.style.setProperty('background', '#DC2626', 'important');
+            b.style.setProperty('background-color', '#DC2626', 'important');
+            b.style.setProperty('color', 'white', 'important');
+            b.style.setProperty('border', 'none', 'important');
+            // شيل اي ايموجي ازرق قديم وحط باب
+            if(!b.dataset.fixed){
+              // احتفظ بكلمة خروج بس
+              b.innerHTML = '🚪 خروج';
+              b.dataset.fixed = '1';
+            }
+          }
+        });
+      }catch(e){ console.log(e); }
+    }
+    // حاول كذا مرة لان admin.js بيحمل متأخر
+    var c=0;
+    var iv = setInterval(function(){
+      paintLogout();
+      c++;
+      if(c>20) clearInterval(iv);
+    }, 500);
+    document.addEventListener('DOMContentLoaded', paintLogout);
+    window.addEventListener('load', paintLogout);
+  })();
+  </script>
+
+  <script>(function(){function m(a){var h=a.getAttribute("href");if(!h)return;try{var u=new URL(h,document.baseURI);if((u.protocol==="http:"||u.protocol==="https:")&&u.host!==location.host){a.target="_blank";a.rel="noopener noreferrer";}}catch(e){}}function s(){document.querySelectorAll("a[href]").forEach(m);}if(document.readyState!=="loading"){s();}else{document.addEventListener("DOMContentLoaded",s);}document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(a){m(a);}},true);})();</script>
+</body>
+</html>
