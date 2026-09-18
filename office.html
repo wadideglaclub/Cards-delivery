@@ -13,7 +13,13 @@
   
   <script>
     (function () {
-      if (localStorage.getItem('wd_october1_auth') !== 'true') {
+      // Strict: لازم sessionStorage فقط - كل جهاز / كل تاب يطلب login
+      try{
+        // امسح الـ localStorage القديم اللي كان بيخليه يفتح من غير باسورد
+        localStorage.removeItem('wd_october1_auth');
+        localStorage.removeItem('wd_login_time');
+      }catch(e){}
+      if (sessionStorage.getItem('wd_october1_auth') !== 'true') {
         location.replace('./index.html');
       }
     })();
@@ -27,5 +33,33 @@
   <script>(function(){function m(a){var h=a.getAttribute("href");if(!h)return;try{var u=new URL(h,document.baseURI);if((u.protocol==="http:"||u.protocol==="https:")&&u.host!==location.host){a.target="_blank";a.rel="noopener noreferrer";}}catch(e){}}function s(){document.querySelectorAll("a[href]").forEach(m);}if(document.readyState!=="loading"){s();}else{document.addEventListener("DOMContentLoaded",s);}document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(a){m(a);}},true);})();</script>
   
 
+
+  <script>
+  (function(){
+    function makeRed(){
+      document.querySelectorAll('button').forEach(function(b){
+        var txt = (b.textContent||'').trim();
+        if(txt.includes('خروج') && txt.length < 20){
+          b.style.background = '#DC2626';
+          b.style.backgroundColor = '#DC2626';
+          b.style.color = 'white';
+        }
+      });
+    }
+    var i=0; var t=setInterval(function(){ makeRed(); i++; if(i>30) clearInterval(t); }, 400);
+  })();
+  // زرار الخروج يمسح كل حاجة
+  window.addEventListener('load', function(){
+    setTimeout(function(){
+      document.querySelectorAll('button').forEach(function(b){
+        if((b.textContent||'').includes('خروج')){
+          b.addEventListener('click', function(){
+            try{ sessionStorage.clear(); localStorage.clear(); }catch(e){}
+          });
+        }
+      });
+    }, 1000);
+  });
+  </script>
 </body>
 </html>
