@@ -1,12 +1,13 @@
 
 (function(){
+  console.log('WD Status Patch v2 loading...');
   var STATUSES = ["قيد انتظار الكارنيهات","تم الطباعة","تم الغاء الطلب"];
   var currentEditId = null;
 
   function getRequests(){
     try{
       var data = JSON.parse(localStorage.getItem("wadi_degla_requests_final")||"[]");
-      return data;
+      return Array.isArray(data) ? data : [];
     }catch(e){ return []; }
   }
 
@@ -14,133 +15,100 @@
     try{
       localStorage.setItem("wadi_degla_requests_final", JSON.stringify(list));
       if(typeof window.__wdFlush === "function"){
-        window.__wdFlush();
+        window.__wdFlush().then(function(){ console.log('Flushed to Supabase'); }).catch(function(){});
       }
-    }catch(e){}
-  }
-
-  function findPhoneInput(){
-    var inputs = document.querySelectorAll('input');
-    for(var i=0;i<inputs.length;i++){
-      var inp = inputs[i];
-      // phone input has placeholder or type tel or near label رقم تليفون
-      var label = inp.parentElement && inp.parentElement.parentElement ? inp.parentElement.parentElement.textContent : "";
-      // Check if this is phone field by checking surrounding text or inputmode
-      if((inp.placeholder && inp.placeholder.indexOf('01')!==-1) || (document.body.innerHTML.indexOf('رقم تليفون')!==-1 && inp.type==='tel')){
-        return inp;
-      }
-      // fallback: look for input that has 11 digit value
-      // We'll search by label text
-      if(label && label.indexOf('تليفون')!==-1){
-        return inp;
-      }
-    }
-    // Last resort: find input after owner name
-    var allInputs = Array.from(document.querySelectorAll('input'));
-    // Usually order: membershipNumber, ownerName, phone
-    if(allInputs.length>=3){
-      // Heuristic: phone is 3rd or 4th input in new form
-      return allInputs[2];
-    }
-    return null;
+      // Also trigger storage event
+      window.dispatchEvent(new Event('storage'));
+    }catch(e){ console.error(e); }
   }
 
   function injectStatusField(){
-    if(document.getElementById('wd-status-field')) return;
-    
-    // Find form - look for container that has phone input
-    var inputs = document.querySelectorAll('input');
-    var phoneInput = null;
-    var phoneWrapper = null;
-    
-    // Try to find phone input by looking for 01 pattern or by position
-    for(var i=0;i<inputs.length;i++){
-      var inp = inputs[i];
-      // Check parent structure
-      var parent = inp.closest('div');
-      if(parent){
-        var text = parent.parentElement ? parent.parentElement.textContent : '';
-        if(text.indexOf('تليفون')!==-1 || text.indexOf('واتساب')!==-1){
-          phoneInput = inp;
-          phoneWrapper = parent.parentElement;
-          break;
-        }
-      }
-    }
-    
-    // Fallback: find by input index in the new request form
-    if(!phoneInput){
-      // The form has multiple inputs, phone is usually before notes textarea
-      var form = document.querySelector('form') || document.body;
-      var allInputs = form.querySelectorAll('input');
-      // In the form, phone is one of the last inputs before textarea
-      for(var j=allInputs.length-1;j>=0;j--){
-        if(allInputs[j].value && /^01\d{9}$/.test(allInputs[j].value)){
-          phoneInput = allInputs[j];
-          phoneWrapper = phoneInput.closest('div').parentElement;
-          break;
-        }
-      }
-    }
-    
-    if(!phoneInput && inputs.length>0){
-      // Final fallback: 3rd input
-      phoneInput = inputs[2];
-      if(phoneInput) phoneWrapper = phoneInput.closest('div');
-    }
-
-    if(!phoneWrapper){
+    if(document.getElementById('wd-status-field')) {
+      // Update currentEditId if needed
       return;
     }
-
-    // Find current request being edited
-    var membershipInput = document.querySelectorAll('input')[0];
-    var membershipNumber = membershipInput ? membershipInput.value.trim() : '';
+    
+    // Find save button "حفظ التعديلات"
+    var buttons = Array.from(document.querySelectorAll('button'));
+    var saveBtn = null;
+    for(var i=0;i<buttons.length;i++){
+      var txt = buttons[i].textContent || '';
+      if(txt.indexOf('حفظ التعديلات')!==-1){
+        saveBtn = buttons[i];
+        break;
+      }
+    }
+    
+    if(!saveBtn){
+      return; // Not in edit mode
+    }
+    
+    // Find form container - parent of save button
+    var formContainer = saveBtn.parentElement;
+    var attempts = 0;
+    while(formContainer && attempts < 5){
+      if(formContainer.querySelectorAll('input').length >= 2){
+        break;
+      }
+      formContainer = formContainer.parentElement;
+      attempts++;
+    }
+    
+    if(!formContainer) return;
+    
+    // Get membership number from first input
+    var inputs = formContainer.querySelectorAll('input');
+    var membershipNumber = inputs[0] ? inputs[0].value.trim() : '';
+    console.log('Membership:', membershipNumber);
+    
     var requests = getRequests();
     var currentReq = null;
     if(membershipNumber){
       for(var k=0;k<requests.length;k++){
-        if(requests[k].membershipNumber === membershipNumber || requests[k].membershipNumber.indexOf(membershipNumber)!==-1){
+        if(requests[k].membershipNumber === membershipNumber){
           currentReq = requests[k];
           currentEditId = requests[k].id;
           break;
         }
       }
     }
-
-    var wrapper = document.createElement('div');
-    wrapper.id = 'wd-status-field';
-    wrapper.style.cssText = 'margin-top:14px;margin-bottom:8px;';
-    wrapper.innerHTML = `
-      <div style="font-size:12px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-        <span>📋 حالة الكارنيهات</span>
-        <span style="color:#dc2626">*</span>
-      </div>
-      <select id="wd-status-select" style="width:100%;height:44px;border:2px solid #0F0F0F;border-radius:12px;padding:0 12px;font-size:14px;font-family:inherit;background:#fff;font-weight:600;">
-        ${STATUSES.map(s => `<option value="${s}" ${currentReq && currentReq.status===s ? 'selected' : ''}>${s}</option>`).join('')}
-      </select>
-      <div style="font-size:11px;color:#71717a;margin-top:6px;">اختر الحالة الجديدة للطلب - سيتم حفظها عند الضغط على حفظ التعديلات</div>
-    `;
     
-    // Insert after phone wrapper
-    if(phoneWrapper && phoneWrapper.parentNode){
-      // Try to insert after phone wrapper's parent container
-      var insertAfter = phoneWrapper;
-      // Find the next sibling container that might be notes
-      var attempts = 0;
-      while(insertAfter && attempts<5){
-        if(insertAfter.nextSibling){
-          insertAfter.parentNode.insertBefore(wrapper, insertAfter.nextSibling);
-          break;
+    // Also try to find by id in URL or global
+    if(!currentReq){
+      // Look for request that was recently edited - last one with same membership
+      for(var k2=0;k2<requests.length;k2++){
+        if(requests[k2].membershipNumber && membershipNumber && requests[k2].membershipNumber.includes(membershipNumber.substring(0,4))){
+          currentReq = requests[k2];
+          currentEditId = requests[k2].id;
         }
-        insertAfter = insertAfter.parentElement;
-        attempts++;
-      }
-      if(attempts>=5){
-        phoneWrapper.parentNode.appendChild(wrapper);
       }
     }
-
+    
+    console.log('Current request:', currentReq, 'ID:', currentEditId);
+    
+    var wrapper = document.createElement('div');
+    wrapper.id = 'wd-status-field';
+    wrapper.style.cssText = 'background:#FFFBEB;border:2px solid #FFC700;border-radius:14px;padding:14px;margin:16px 0;';
+    wrapper.innerHTML = `
+      <div style="font-size:13px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px;color:#000;">
+        <span>📋 حالة الكارنيهات</span>
+        <span style="color:#dc2626">*</span>
+        <span style="font-size:10px;background:#000;color:#FFC700;padding:2px 8px;border-radius:20px;margin-right:8px;">جديد</span>
+      </div>
+      <select id="wd-status-select" style="width:100%;height:48px;border:2px solid #000;border-radius:12px;padding:0 12px;font-size:14px;font-weight:700;background:#fff;">
+        <option value="قيد انتظار الكارنيهات" ${currentReq && currentReq.status==="قيد انتظار الكارنيهات" ? 'selected' : ''}>قيد انتظار الكارنيهات</option>
+        <option value="تم الطباعة" ${currentReq && currentReq.status==="تم الطباعة" ? 'selected' : ''}>تم الطباعة</option>
+        <option value="تم الغاء الطلب" ${currentReq && currentReq.status==="تم الغاء الطلب" ? 'selected' : ''}>تم الغاء الطلب</option>
+        <option value="تم الاستلام" ${currentReq && currentReq.status==="تم الاستلام" ? 'selected' : ''}>تم الاستلام</option>
+      </select>
+      <div style="font-size:11px;color:#92400e;margin-top:8px;background:#FEF3C7;padding:6px 8px;border-radius:8px;">
+        ⚠️ اختر الحالة الجديدة ثم اضغط حفظ التعديلات - الحالة الحالية: <b>${currentReq ? currentReq.status : 'غير معروفة'}</b>
+      </div>
+    `;
+    
+    // Insert before save button's parent
+    saveBtn.parentElement.parentNode.insertBefore(wrapper, saveBtn.parentElement);
+    
     var select = document.getElementById('wd-status-select');
     if(select){
       window.__wdEditStatus = select.value;
@@ -149,72 +117,59 @@
         console.log('Status changed to:', window.__wdEditStatus);
       });
       
-      // Hook into save button
-      var saveBtns = document.querySelectorAll('button');
-      for(var b=0;b<saveBtns.length;b++){
-        var btn = saveBtns[b];
-        if(btn.textContent.indexOf('حفظ التعديلات')!==-1 || btn.textContent.indexOf('حفظ')!==-1){
-          if(!btn.dataset.statusHooked){
-            btn.dataset.statusHooked = '1';
-            btn.addEventListener('click', function(){
-              setTimeout(function(){
-                var sel = document.getElementById('wd-status-select');
-                if(sel && currentEditId){
-                  var newStatus = sel.value;
-                  var reqs = getRequests();
-                  var updated = false;
-                  for(var r=0;r<reqs.length;r++){
-                    if(reqs[r].id === currentEditId){
-                      reqs[r].status = newStatus;
-                      updated = true;
-                      break;
-                    }
-                  }
-                  if(updated){
-                    saveRequests(reqs);
-                    console.log('Status updated to', newStatus);
-                    // Show success
-                    setTimeout(function(){
-                      alert('تم تحديث حالة الكارنيه إلى: ' + newStatus);
-                    }, 300);
-                  }
+      if(!saveBtn.dataset.statusHooked){
+        saveBtn.dataset.statusHooked = '1';
+        // Capture original click
+        saveBtn.addEventListener('click', function(){
+          var sel = document.getElementById('wd-status-select');
+          var newStatus = sel ? sel.value : null;
+          var editId = currentEditId;
+          console.log('Save clicked, new status:', newStatus, 'ID:', editId);
+          
+          if(newStatus && editId){
+            setTimeout(function(){
+              var reqs = getRequests();
+              var updated = false;
+              for(var r=0;r<reqs.length;r++){
+                if(reqs[r].id === editId){
+                  console.log('Updating', reqs[r].membershipNumber, 'from', reqs[r].status, 'to', newStatus);
+                  reqs[r].status = newStatus;
+                  updated = true;
+                  break;
                 }
-              }, 800);
-            });
+              }
+              if(updated){
+                saveRequests(reqs);
+                setTimeout(function(){
+                  alert('✅ تم تحديث الحالة إلى: ' + newStatus + '\nسيتم تحديث الصفحة الآن');
+                  location.reload();
+                }, 500);
+              }
+            }, 1000);
           }
-        }
+        });
       }
     }
   }
 
-  function observe(){
-    var observer = new MutationObserver(function(){
-      // Check if we are in edit mode (has membership number input filled)
-      var inputs = document.querySelectorAll('input');
-      if(inputs.length>=2){
-        // If first input has value (membership number), we might be in edit mode
-        var firstVal = inputs[0] ? inputs[0].value.trim() : '';
-        if(firstVal && firstVal.length>3){
-          injectStatusField();
-        }
-      }
-    });
-    observer.observe(document.body, {childList:true, subtree:true});
-    
-    // Also try every 1 second
-    setInterval(function(){
-      var inputs = document.querySelectorAll('input');
-      if(inputs.length>=2 && inputs[0].value.trim()){
-        injectStatusField();
-      }
-    }, 1000);
-  }
-
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', observe);
-  } else {
-    observe();
-  }
+  // Observe for edit modal
+  var observer = new MutationObserver(function(){
+    var saveBtn = Array.from(document.querySelectorAll('button')).find(b => (b.textContent||'').indexOf('حفظ التعديلات')!==-1);
+    if(saveBtn && !document.getElementById('wd-status-field')){
+      console.log('Edit form detected');
+      setTimeout(injectStatusField, 300);
+    }
+  });
   
-  console.log('Wadi Degla Status Patch Loaded - Statuses:', ["قيد انتظار الكارنيهات","تم الطباعة","تم الغاء الطلب"]);
+  observer.observe(document.body, {childList:true, subtree:true});
+  
+  // Also poll
+  setInterval(function(){
+    var saveBtn = Array.from(document.querySelectorAll('button')).find(b => (b.textContent||'').indexOf('حفظ التعديلات')!==-1);
+    if(saveBtn && !document.getElementById('wd-status-field')){
+      injectStatusField();
+    }
+  }, 1000);
+  
+  console.log('WD Status Patch v2 Ready - waiting for edit form');
 })();
