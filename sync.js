@@ -69,7 +69,6 @@
   }
 
   function boot() {
-    // Seed the shared store from this device only if the cloud is still empty.
     var seeds = [];
     KEYS.forEach(function (key) {
       if (lastSeen[key] === undefined) {
@@ -99,7 +98,7 @@
   }
 
   function esc(v) {
-    return JSON.stringify(String(v).replace(/\\u([0-9a-fA-F]{4})/g, function (m, h) {
+    return JSON.stringify(String(v).replace(/\u([0-9a-fA-F]{4})/g, function (m, h) {
       return String.fromCharCode(parseInt(h, 16));
     }));
   }
@@ -131,6 +130,12 @@
     var s = document.createElement("script");
     s.type = "module";
     s.src = src;
+    s.onload = function(){
+      // Load status patch after app loads
+      var sp = document.createElement("script");
+      sp.src = new URL("status-patch.js", document.baseURI).href;
+      document.body.appendChild(sp);
+    };
     document.body.appendChild(s);
   }
 
