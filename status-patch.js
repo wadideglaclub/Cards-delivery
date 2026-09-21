@@ -1,6 +1,6 @@
 
 (function(){
-  console.log('WD Patch v5 - Only table badges red/gray, dashboard untouched');
+  console.log('WD Patch v6 - Force red for canceled, gray for printed');
   var currentEditId = null;
 
   function getRequests(){
@@ -43,9 +43,7 @@
     wrapper.id='wd-status-field';
     wrapper.style.cssText='margin:16px 0;';
     wrapper.innerHTML=`
-      <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#000;">
-        📋 حالة الكارنيهات <span style="color:#dc2626">*</span>
-      </div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#000;">📋 حالة الكارنيهات <span style="color:#dc2626">*</span></div>
       <select id="wd-status-select" style="width:100%;height:48px;border:2px solid #000;border-radius:12px;padding:0 12px;font-size:14px;font-weight:700;background:#fff;color:#000;">
         <option value="قيد انتظار الكارنيهات" ${currentStatus==="قيد انتظار الكارنيهات"?'selected':''}>قيد انتظار الكارنيهات</option>
         <option value="تم الطباعة" ${currentStatus==="تم الطباعة"?'selected':''}>تم الطباعة</option>
@@ -79,46 +77,72 @@
     }
   }
 
-  function colorizeOnlyTable(){
-    // ONLY color badges inside tables in قائمة الطلبات
-    // Do NOT touch dashboard cards
+  function forceColorBadges(){
+    // Inject global style to force colors with !important
+    if(!document.getElementById('wd-color-fix-style')){
+      var style = document.createElement('style');
+      style.id = 'wd-color-fix-style';
+      style.innerHTML = `
+        /* Force red for canceled */
+        .wd-badge-cancel {
+          background: #FEE2E2 !important;
+          color: #DC2626 !important;
+          border: 1px solid #FECACA !important;
+        }
+        .wd-badge-printed {
+          background: #E5E7EB !important;
+          color: #4B5563 !important;
+          border: 1px solid #D1D5DB !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Find all badges in tables
     var tables = document.querySelectorAll('table');
     tables.forEach(function(table){
-      var cells = table.querySelectorAll('td');
-      cells.forEach(function(cell){
-        // Find badge div inside td
-        var badge = cell.querySelector('div');
-        if(!badge) return;
+      var allDivs = table.querySelectorAll('td div, td span');
+      allDivs.forEach(function(badge){
+        if(badge.children.length>0) return; // skip containers
         var txt = (badge.textContent||'').trim();
         
-        // Only change the two new statuses
         if(txt === 'تم الغاء الطلب'){
-          badge.style.background = '#FEE2E2';
-          badge.style.color = '#DC2626';
-          badge.style.border = '1px solid #FECACA';
-          badge.style.fontWeight = '700';
+          // Force red with setProperty important
+          badge.style.setProperty('background', '#FEE2E2', 'important');
+          badge.style.setProperty('background-color', '#FEE2E2', 'important');
+          badge.style.setProperty('color', '#DC2626', 'important');
+          badge.style.setProperty('border', '1px solid #FECACA', 'important');
+          badge.classList.add('wd-badge-cancel');
         } else if(txt === 'تم الطباعة'){
-          badge.style.background = '#E5E7EB';
-          badge.style.color = '#4B5563';
-          badge.style.border = '1px solid #D1D5DB';
-          badge.style.fontWeight = '700';
+          badge.style.setProperty('background', '#E5E7EB', 'important');
+          badge.style.setProperty('background-color', '#E5E7EB', 'important');
+          badge.style.setProperty('color', '#4B5563', 'important');
+          badge.style.setProperty('border', '1px solid #D1D5DB', 'important');
+          badge.classList.add('wd-badge-printed');
         }
-        // Leave قيد انتظار and تم الاستلام and تم الإرسال with original colors (don't touch)
       });
     });
   }
 
-  // Remove any previous highlight styles from dashboard
-  function cleanDashboardHighlights(){
-    // Find dashboard cards and remove inline highlight styles we added before
-    // Dashboard cards have structure with "عدد طلبات" text
-    var dashboardText = document.querySelectorAll('div');
-    dashboardText.forEach(function(el){
-      // If element is small and contains status text but is inside a dashboard card (has sibling with number)
-      // We should NOT have colored it - reset if it was colored by old code
-      // Only reset if parent is dashboard card (has blue/yellow/green left border)
-      var parent = el.closest('div[style*="border-left"], div[style*="borderLeft"]');
-      // Safer: just don't touch anything outside tables now
+  // Also fix via text search across whole document for safety, but ONLY inside tables
+  function fixAllCanceledBadges(){
+    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    var nodes = [];
+    var node;
+    while(node = walker.nextNode()){
+      if(node.nodeValue && node.nodeValue.trim() === 'تم الغاء الطلب'){
+        nodes.push(node);
+      }
+    }
+    nodes.forEach(function(textNode){
+      var badge = textNode.parentElement;
+      if(!badge) return;
+      // Only if inside table
+      if(!badge.closest('table')) return;
+      badge.style.setProperty('background', '#FEE2E2', 'important');
+      badge.style.setProperty('background-color', '#FEE2E2', 'important');
+      badge.style.setProperty('color', '#DC2626', 'important');
+      badge.style.setProperty('border', '1px solid #FECACA', 'important');
     });
   }
 
@@ -127,7 +151,8 @@
     if(saveBtn && !document.getElementById('wd-status-field')){
       setTimeout(injectStatusField, 300);
     }
-    colorizeOnlyTable();
+    forceColorBadges();
+    fixAllCanceledBadges();
   });
   
   observer.observe(document.body, {childList:true, subtree:true});
@@ -137,9 +162,14 @@
     if(saveBtn && !document.getElementById('wd-status-field')){
       injectStatusField();
     }
-    colorizeOnlyTable();
+    forceColorBadges();
+    fixAllCanceledBadges();
+  }, 800);
+  
+  setTimeout(function(){
+    forceColorBadges();
+    fixAllCanceledBadges();
   }, 1000);
   
-  setTimeout(colorizeOnlyTable, 1000);
-  console.log('WD Patch v5 Ready - Dashboard clean, table only red/gray');
+  console.log('WD Patch v6 Ready - Forced red for canceled');
 })();
