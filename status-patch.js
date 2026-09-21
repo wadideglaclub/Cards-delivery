@@ -1,6 +1,6 @@
 
 (function(){
-  console.log('WD Status Patch v3 - Colors loading...');
+  console.log('WD Status Patch v4 - Clean + Table Colors');
   var currentEditId = null;
 
   function getRequests(){
@@ -14,70 +14,17 @@
     try{
       localStorage.setItem("wadi_degla_requests_final", JSON.stringify(list));
       if(typeof window.__wdFlush === "function"){
-        window.__wdFlush().then(function(){ console.log('Flushed'); }).catch(function(){});
+        window.__wdFlush().then(function(){}).catch(function(){});
       }
-      window.dispatchEvent(new Event('storage'));
-    }catch(e){ console.error(e); }
+    }catch(e){}
   }
 
-  function getStatusStyle(status){
-    if(status === "تم الغاء الطلب"){
-      return {
-        border: "2px solid #DC2626",
-        background: "#FEF2F2",
-        color: "#DC2626",
-        badgeBg: "#FEE2E2",
-        badgeColor: "#DC2626",
-        containerBorder: "2px solid #DC2626",
-        containerBg: "#FEF2F2"
-      };
-    } else if(status === "تم الطباعة"){
-      return {
-        border: "2px solid #6B7280",
-        background: "#F3F4F6",
-        color: "#4B5563",
-        badgeBg: "#E5E7EB",
-        badgeColor: "#4B5563",
-        containerBorder: "2px solid #6B7280",
-        containerBg: "#F9FAFB"
-      };
-    } else if(status === "تم الاستلام"){
-      return {
-        border: "2px solid #16A34A",
-        background: "#F0FDF4",
-        color: "#16A34A",
-        badgeBg: "#DCFCE7",
-        badgeColor: "#16A34A",
-        containerBorder: "2px solid #FFC700",
-        containerBg: "#FFFBEB"
-      };
-    } else {
-      // قيد انتظار - yellow default
-      return {
-        border: "2px solid #000",
-        background: "#fff",
-        color: "#000",
-        badgeBg: "#FEF3C7",
-        badgeColor: "#92400e",
-        containerBorder: "2px solid #FFC700",
-        containerBg: "#FFFBEB"
-      };
-    }
-  }
-
+  // 1. Clean edit dropdown - no extra text, no hint box
   function injectStatusField(){
     if(document.getElementById('wd-status-field')) return;
     
     var buttons = Array.from(document.querySelectorAll('button'));
-    var saveBtn = null;
-    for(var i=0;i<buttons.length;i++){
-      var txt = buttons[i].textContent || '';
-      if(txt.indexOf('حفظ التعديلات')!==-1){
-        saveBtn = buttons[i];
-        break;
-      }
-    }
-    
+    var saveBtn = buttons.find(b => (b.textContent||'').indexOf('حفظ التعديلات')!==-1);
     if(!saveBtn) return;
     
     var formContainer = saveBtn.parentElement;
@@ -104,58 +51,31 @@
     }
     
     var currentStatus = currentReq ? currentReq.status : "قيد انتظار الكارنيهات";
-    var style = getStatusStyle(currentStatus);
     
     var wrapper = document.createElement('div');
     wrapper.id = 'wd-status-field';
-    wrapper.style.cssText = `background:${style.containerBg};border:${style.containerBorder};border-radius:14px;padding:14px;margin:16px 0;transition:all 0.3s;`;
+    wrapper.style.cssText = 'margin:16px 0;';
+    // Clean - no yellow box, just simple field like others
     wrapper.innerHTML = `
-      <div style="font-size:13px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px;color:#000;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#000;display:flex;align-items:center;gap:6px;">
         <span>📋 حالة الكارنيهات</span>
         <span style="color:#dc2626">*</span>
-        <span style="font-size:10px;background:#000;color:#FFC700;padding:2px 8px;border-radius:20px;margin-right:8px;">جديد</span>
       </div>
-      <select id="wd-status-select" style="width:100%;height:48px;border:${style.border};border-radius:12px;padding:0 12px;font-size:14px;font-weight:700;background:${style.background};color:${style.color};transition:all 0.3s;">
+      <select id="wd-status-select" style="width:100%;height:48px;border:2px solid #000;border-radius:12px;padding:0 12px;font-size:14px;font-weight:700;background:#fff;color:#000;">
         <option value="قيد انتظار الكارنيهات" ${currentStatus==="قيد انتظار الكارنيهات" ? 'selected' : ''}>قيد انتظار الكارنيهات</option>
-        <option value="تم الطباعة" ${currentStatus==="تم الطباعة" ? 'selected' : ''} style="background:#F3F4F6;color:#4B5563">تم الطباعة - رمادي</option>
-        <option value="تم الغاء الطلب" ${currentStatus==="تم الغاء الطلب" ? 'selected' : ''} style="background:#FEF2F2;color:#DC2626">تم الغاء الطلب - أحمر</option>
+        <option value="تم الطباعة" ${currentStatus==="تم الطباعة" ? 'selected' : ''}>تم الطباعة</option>
+        <option value="تم الغاء الطلب" ${currentStatus==="تم الغاء الطلب" ? 'selected' : ''}>تم الغاء الطلب</option>
         <option value="تم الاستلام" ${currentStatus==="تم الاستلام" ? 'selected' : ''}>تم الاستلام</option>
       </select>
-      <div id="wd-status-hint" style="font-size:11px;margin-top:8px;padding:6px 8px;border-radius:8px;background:${style.badgeBg};color:${style.badgeColor};font-weight:600;">
-        الحالة الحالية: <b>${currentStatus}</b> ${currentStatus==="تم الغاء الطلب" ? '🔴' : currentStatus==="تم الطباعة" ? '⚪' : '🟡'}
-      </div>
     `;
     
     saveBtn.parentElement.parentNode.insertBefore(wrapper, saveBtn.parentElement);
     
     var select = document.getElementById('wd-status-select');
-    var hint = document.getElementById('wd-status-hint');
-    
     if(select){
       window.__wdEditStatus = select.value;
-      
       select.addEventListener('change', function(){
         window.__wdEditStatus = this.value;
-        var newStyle = getStatusStyle(this.value);
-        
-        // Update select style
-        this.style.border = newStyle.border;
-        this.style.background = newStyle.background;
-        this.style.color = newStyle.color;
-        
-        // Update container
-        wrapper.style.background = newStyle.containerBg;
-        wrapper.style.border = newStyle.containerBorder;
-        
-        // Update hint
-        if(hint){
-          hint.style.background = newStyle.badgeBg;
-          hint.style.color = newStyle.badgeColor;
-          var emoji = this.value==="تم الغاء الطلب" ? '🔴 ملغي - أحمر' : this.value==="تم الطباعة" ? '⚪ مطبوع - رمادي' : this.value==="تم الاستلام" ? '🟢 مستلم' : '🟡 انتظار';
-          hint.innerHTML = `سيتم تغيير الحالة إلى: <b>${this.value}</b> - ${emoji}`;
-        }
-        
-        console.log('Status changed to:', this.value);
       });
       
       if(!saveBtn.dataset.statusHooked){
@@ -164,25 +84,17 @@
           var sel = document.getElementById('wd-status-select');
           var newStatus = sel ? sel.value : null;
           var editId = currentEditId;
-          
           if(newStatus && editId){
             setTimeout(function(){
               var reqs = getRequests();
-              var updated = false;
               for(var r=0;r<reqs.length;r++){
                 if(reqs[r].id === editId){
                   reqs[r].status = newStatus;
-                  updated = true;
                   break;
                 }
               }
-              if(updated){
-                saveRequests(reqs);
-                setTimeout(function(){
-                  alert('✅ تم تحديث الحالة إلى: ' + newStatus);
-                  location.reload();
-                }, 500);
-              }
+              saveRequests(reqs);
+              setTimeout(function(){ location.reload(); }, 500);
             }, 1000);
           }
         });
@@ -190,11 +102,84 @@
     }
   }
 
+  // 2. Color badges in the table (قائمة الطلبات)
+  function colorizeTableBadges(){
+    // Find all status badges in table - they are divs/spans with text containing status
+    var allElements = document.querySelectorAll('td div, td span, div');
+    for(var i=0;i<allElements.length;i++){
+      var el = allElements[i];
+      var text = (el.textContent||'').trim();
+      
+      // Only target small badges, not large containers
+      if(el.children.length>0) continue; // Skip containers
+      if(text.length>30) continue; // Skip long texts
+      if(!text) continue;
+      
+      // Check if this is a status badge
+      if(text === 'قيد انتظار الكارنيهات' || text === 'قيد انتظار' || (text.indexOf('قيد انتظار')!==-1 && text.length<25)){
+        el.style.background = '#FEF3C7';
+        el.style.color = '#92400e';
+        el.style.fontWeight = '700';
+      }
+      else if(text === 'تم الغاء الطلب' || text.indexOf('الغاء الطلب')!==-1){
+        el.style.background = '#FEE2E2';
+        el.style.color = '#DC2626';
+        el.style.fontWeight = '700';
+        el.style.border = '1px solid #FECACA';
+      }
+      else if(text === 'تم الطباعة'){
+        el.style.background = '#E5E7EB';
+        el.style.color = '#4B5563';
+        el.style.fontWeight = '700';
+        el.style.border = '1px solid #D1D5DB';
+      }
+      else if(text === 'تم الاستلام'){
+        el.style.background = '#DCFCE7';
+        el.style.color = '#166534';
+        el.style.fontWeight = '700';
+        el.style.border = '1px solid #BBF7D0';
+      }
+      else if(text === 'تم الإرسال' || text === 'تم الارسال'){
+        el.style.background = '#DBEAFE';
+        el.style.color = '#1E40AF';
+        el.style.fontWeight = '700';
+      }
+    }
+    
+    // More robust: find table cells in the requests table
+    var tables = document.querySelectorAll('table');
+    tables.forEach(function(table){
+      var rows = table.querySelectorAll('tr');
+      rows.forEach(function(row){
+        var cells = row.querySelectorAll('td');
+        // Status is usually 3rd or 4th column
+        cells.forEach(function(cell){
+          var div = cell.querySelector('div');
+          if(!div) return;
+          var txt = (div.textContent||'').trim();
+          if(txt === 'تم الغاء الطلب'){
+            div.style.background = '#FEE2E2';
+            div.style.color = '#DC2626';
+            div.style.border = '1px solid #FECACA';
+          } else if(txt === 'تم الطباعة'){
+            div.style.background = '#E5E7EB';
+            div.style.color = '#4B5563';
+            div.style.border = '1px solid #D1D5DB';
+          } else if(txt === 'قيد انتظار الكارنيهات' || txt === 'قيد انتظار'){
+            div.style.background = '#FEF3C7';
+            div.style.color = '#92400e';
+          }
+        });
+      });
+    });
+  }
+
   var observer = new MutationObserver(function(){
     var saveBtn = Array.from(document.querySelectorAll('button')).find(b => (b.textContent||'').indexOf('حفظ التعديلات')!==-1);
     if(saveBtn && !document.getElementById('wd-status-field')){
       setTimeout(injectStatusField, 300);
     }
+    colorizeTableBadges();
   });
   
   observer.observe(document.body, {childList:true, subtree:true});
@@ -204,7 +189,11 @@
     if(saveBtn && !document.getElementById('wd-status-field')){
       injectStatusField();
     }
-  }, 1000);
+    colorizeTableBadges();
+  }, 800);
   
-  console.log('WD Status Patch v3 with Colors Ready');
+  // Initial colorize
+  setTimeout(colorizeTableBadges, 1000);
+  
+  console.log('WD Patch v4 Ready - Clean dropdown + Colored table');
 })();
