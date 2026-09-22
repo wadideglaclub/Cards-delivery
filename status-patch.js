@@ -36,7 +36,7 @@
           badge.style.setProperty('background-color', '#E5E7EB', 'important');
           badge.style.setProperty('color', '#4B5563', 'important');
           badge.style.setProperty('border', '1px solid #D1D5DB', 'important');
-        } else if(newStatus === 'تم الاستلام'){
+        } else if(newStatus === 'تم الإستلام'){
           badge.style.setProperty('background', '#DCFCE7', 'important');
           badge.style.setProperty('background-color', '#DCFCE7', 'important');
           badge.style.setProperty('color', '#166534', 'important');
@@ -88,8 +88,8 @@
       if(txt.indexOf('قيد انتظار')!==-1) foundStatus='قيد انتظار الكارنيهات';
       else if(txt.indexOf('تم الطباعة')!==-1) foundStatus='تم الطباعة';
       else if(txt.indexOf('تم الغاء')!==-1 || txt.indexOf('تم إلغاء')!==-1) foundStatus='تم الغاء الطلب';
-      else if(txt.indexOf('تم الاستلام')!==-1) foundStatus='تم الاستلام';
-      else if(txt.indexOf('تم الارسال')!==-1 || txt.indexOf('تم الإرسال')!==-1) foundStatus='تم الإرسال';
+      else if(txt.indexOf('تم الإستلام')!==-1) foundStatus='تم الإستلام';
+      else if(txt.indexOf('تم الإرسال')!==-1 || txt.indexOf('تم الإرسال')!==-1) foundStatus='تم الإرسال';
     });
     if(foundStatus){
       currentRowStatus = foundStatus;
@@ -176,7 +176,7 @@
         <option value="قيد انتظار الكارنيهات" ${currentStatus==="قيد انتظار الكارنيهات"?'selected':''}>قيد انتظار الكارنيهات</option>
         <option value="تم الطباعة" ${currentStatus==="تم الطباعة"?'selected':''}>تم الطباعة</option>
         <option value="تم الغاء الطلب" ${currentStatus==="تم الغاء الطلب"?'selected':''}>تم الغاء الطلب</option>
-        <option value="تم الأستلام" ${currentStatus==="تم الأستلام"?'selected':''}>تم الأستلام</option>
+        <option value="تم الإستلام" ${currentStatus==="تم الإستلام"?'selected':''}>تم الإستلام</option>
         <option value="تم الإرسال" ${currentStatus==="تم الإرسال"?'selected':''}>تم الإرسال</option>
       </select>
       <div style="font-size:11px;color:#666;margin-top:6px;">الحالة الحالية: ${currentStatus}</div>
