@@ -151,8 +151,8 @@
         <option value="قيد انتظار الكارنيهات" ${currentStatus==="قيد انتظار الكارنيهات"?'selected':''}>قيد انتظار الكارنيهات</option>
         <option value="تم الطباعة" ${currentStatus==="تم الطباعة"?'selected':''}>تم الطباعة</option>
         <option value="تم الغاء الطلب" ${currentStatus==="تم الغاء الطلب"?'selected':''}>تم الغاء الطلب</option>
-        <option value="تم الاستلام" ${currentStatus==="تم الأستلام"?'selected':''}>تم الأستلام</option>
-        <option value="تم الاستلام" ${currentStatus==="تم الإرسال"?'selected':''}>تم الإرسال</option>
+        <option value="تم الاستلام" ${currentStatus==="تم الاستلام"?'selected':''}>تم الأستلام</option>
+        <option value="تم الإرسال" ${currentStatus==="تم الإرسال"?'selected':''}>تم الإرسال</option>
       </select>
       ${currentRowStatus ? `<div style="font-size:11px;color:#666;margin-top:6px;">الحالة الحالية: ${currentRowStatus}</div>` : ''}
     `;
