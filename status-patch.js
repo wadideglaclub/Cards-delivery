@@ -48,7 +48,8 @@
         <option value="قيد انتظار الكارنيهات" ${currentStatus==="قيد انتظار الكارنيهات"?'selected':''}>قيد انتظار الكارنيهات</option>
         <option value="تم الطباعة" ${currentStatus==="تم الطباعة"?'selected':''}>تم الطباعة</option>
         <option value="تم الغاء الطلب" ${currentStatus==="تم الغاء الطلب"?'selected':''}>تم الغاء الطلب</option>
-        <option value="تم الاستلام" ${currentStatus==="تم الاستلام"?'selected':''}>تم الاستلام</option>
+        <option value="تم الأستلام" ${currentStatus==="تم الاستلام"?'selected':''}>تم الاستلام</option>
+        <option value="تم الإرسال" ${currentStatus==="تم الإرسال"?'selected':''}>تم الإرسال</option>
       </select>
     `;
     saveBtn.parentElement.parentNode.insertBefore(wrapper, saveBtn.parentElement);
