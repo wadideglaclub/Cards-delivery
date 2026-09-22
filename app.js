@@ -20,7 +20,7 @@ function formatMembership(num){
   if(digits.indexOf("00")!==0){ return "00"+digits; }
   return raw;
 }
-let rows = s.map((ne)=>[formatMembership(ne.membershipNumber),ne.ownerName||"",ne.requestType==="send"?"طلب كارنيه إلى فرع آخر":"إرسال كارنيه من فرع آخر",ne.cardType==="عضوية"?"كارنيه عضوية":"كارنيه دولي",ne.fromBranch,ne.toBranch,ne.phone||"-",ne.employee,ne.status,ne.date,ne.isReturn?"مرتجع":"-",ne.returnDate||"-",(ne.notes||"").replace(/</g,"").replace(/>/g,"")]);
+let rows = s.map((ne)=>[formatMembership(ne.membershipNumber),ne.ownerName||"",ne.requestType==="send"?"إرسال كارنيه إلى فرع آخر":"طلب كارنيه من فرع آخر",ne.cardType==="عضوية"?"كارنيه عضوية":"كارنيه دولي",ne.fromBranch,ne.toBranch,ne.phone||"-",ne.employee,ne.status,ne.date,ne.isReturn?"مرتجع":"-",ne.returnDate||"-",(ne.notes||"").replace(/</g,"").replace(/>/g,"")]);
 let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><style>
 table{border-collapse:collapse;direction:rtl}
 th{background:#0F0F0F;color:#FFD700;font-weight:800;font-size:13px;border:1px solid #333;padding:10px 12px}
