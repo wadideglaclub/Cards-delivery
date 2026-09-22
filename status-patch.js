@@ -88,7 +88,7 @@
       if(txt.indexOf('قيد انتظار')!==-1) foundStatus='قيد انتظار الكارنيهات';
       else if(txt.indexOf('تم الطباعة')!==-1) foundStatus='تم الطباعة';
       else if(txt.indexOf('تم الغاء')!==-1 || txt.indexOf('تم إلغاء')!==-1) foundStatus='تم الغاء الطلب';
-      else if(txt.indexOf('تم الإستلام')!==-1) foundStatus='تم الإستلام';
+      else if(txt.indexOf('تم الاستلام')!==-1) foundStatus='تم الاستلام';
       else if(txt.indexOf('تم الإرسال')!==-1 || txt.indexOf('تم الإرسال')!==-1) foundStatus='تم الإرسال';
     });
     if(foundStatus){
@@ -176,7 +176,7 @@
         <option value="قيد انتظار الكارنيهات" ${currentStatus==="قيد انتظار الكارنيهات"?'selected':''}>قيد انتظار الكارنيهات</option>
         <option value="تم الطباعة" ${currentStatus==="تم الطباعة"?'selected':''}>تم الطباعة</option>
         <option value="تم الغاء الطلب" ${currentStatus==="تم الغاء الطلب"?'selected':''}>تم الغاء الطلب</option>
-        <option value="تم الإستلام" ${currentStatus==="تم الإستلام"?'selected':''}>تم الإستلام</option>
+        <option value="تم الاستلام" ${currentStatus==="تم الاستلام"?'selected':''}>تم الاستلام</option>
         <option value="تم الإرسال" ${currentStatus==="تم الإرسال"?'selected':''}>تم الإرسال</option>
       </select>
       <div style="font-size:11px;color:#666;margin-top:6px;">الحالة الحالية: ${currentStatus}</div>
