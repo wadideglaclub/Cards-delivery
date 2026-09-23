@@ -6,19 +6,14 @@
   var loadPromise = null;
   var requestNumber = 0;
 
-  function normalizeDigits(value) {
-    return String(value == null ? "" : value)
+  // تنظيف النص وتوحيد الأرقام العربية إلى إنجليزية مع الحفاظ على الحروف والرموز إن وجدت
+  function cleanValue(value) {
+    if (value == null) return "";
+    return String(value)
+      .trim()
       .replace(/[٠-٩]/g, function (digit) {
         return "٠١٢٣٤٥٦٧٨٩".indexOf(digit);
-      })
-      .replace(/[^0-9]/g, "");
-  }
-
-  // The sheet contains leading zeros and some 11-digit values.
-  // Matching by the value without leading zeros makes both forms work.
-  function lookupKey(value) {
-    var digits = normalizeDigits(value).replace(/^0+/, "");
-    return digits || "0";
+      });
   }
 
   function loadSheetJs() {
@@ -60,9 +55,9 @@
       var sheet = workbook.Sheets[sheetName];
 
       /*
-       * The new sheet is intentionally read by fixed Excel columns:
-       * A = MembershipNumber
-       * C = BranchName
+       * قراءة الشيت بالكامل من الصفوف والأعمدة المحددة:
+       * العمود A (index 0) = رقم العضوية (من A2 إلى A257002)
+       * العمود C (index 2) = مكان الفرع (من C2 إلى C257002)
        */
       var rows = XLSX.utils.sheet_to_json(sheet, {
         header: 1,
@@ -72,19 +67,44 @@
       });
       var resultsByNumber = new Map();
 
+      // البدء من الصف الثاني (Index 1) حتى نهاية الشيت لضمان قراءة النطاق بالكامل
       for (var rowIndex = 1; rowIndex < rows.length; rowIndex++) {
         var row = rows[rowIndex] || [];
-        var membershipNumber = String(row[0] == null ? "" : row[0]).trim();
-        var branchName = String(row[2] == null ? "" : row[2]).trim();
-        var key = lookupKey(membershipNumber);
+        var membershipNumber = cleanValue(row[0]);
+        var branchName = cleanValue(row[2]);
 
-        if (!normalizeDigits(membershipNumber) || !branchName) continue;
-        if (!resultsByNumber.has(key)) resultsByNumber.set(key, []);
-        resultsByNumber.get(key).push({
+        if (!membershipNumber || !branchName) continue;
+
+        // مفتاح البحث الأساسي والنظيف (مع دعم مطابقة الأرقام سواء بـ أصفار بادئة أو بدونها)
+        var exactKey = membershipNumber.toLowerCase();
+        var numericOnlyKey = membershipNumber.replace(/^0+/, "");
+        if (!numericOnlyKey) numericOnlyKey = "0";
+
+        var entry = {
           membershipNumber: membershipNumber,
           branchName: branchName,
           rowNumber: rowIndex + 1
-        });
+        };
+
+        // تخزين بالمفتاح الدقيق
+        if (!resultsByNumber.has(exactKey)) {
+          resultsByNumber.set(exactKey, []);
+        }
+        resultsByNumber.get(exactKey).push(entry);
+
+        // تخزين بالمفتاح الرقمي المجرد (بدون أصفار بادئة) لضمان سهولة وسرعة المطابقة
+        if (exactKey !== numericOnlyKey && exactKey !== numericOnlyKey.toLowerCase()) {
+          if (!resultsByNumber.has(numericOnlyKey)) {
+            resultsByNumber.set(numericOnlyKey, []);
+          }
+          // تجنب تكرار نفس الكجل في حال تطابقهم
+          var exists = resultsByNumber.get(numericOnlyKey).some(function(item) {
+            return item.membershipNumber === membershipNumber;
+          });
+          if (!exists) {
+            resultsByNumber.get(numericOnlyKey).push(entry);
+          }
+        }
       }
 
       return resultsByNumber;
@@ -163,7 +183,6 @@
 
     var numberInput = createField("رقم العضوية", grid);
     numberInput.setAttribute("placeholder", "اكتب رقم العضوية");
-    numberInput.setAttribute("inputmode", "numeric");
 
     var branchInput = createField("مكان الفرع", grid);
     branchInput.readOnly = true;
@@ -179,7 +198,7 @@
     box.appendChild(resultsBox);
 
     numberInput.addEventListener("input", function () {
-      var value = normalizeDigits(numberInput.value);
+      var value = cleanValue(numberInput.value);
       branchInput.value = "";
       branchInput.style.color = "";
       resultsBox.innerHTML = "";
@@ -190,11 +209,11 @@
         return;
       }
 
-      status.textContent = "جارٍ البحث في الشيت الجديد...";
+      status.textContent = "جارٍ البحث في الشيت...";
       status.style.color = "#6b7280";
       timer = setTimeout(function () {
         search(value, branchInput, status, resultsBox);
-      }, 350);
+      }, 300);
     });
 
     if (window.matchMedia && window.matchMedia("(max-width: 640px)").matches) {
@@ -209,11 +228,16 @@
     loadWorkbookIndex().then(function (resultsByNumber) {
       if (currentRequest !== requestNumber) return;
 
-      var results = resultsByNumber.get(lookupKey(number)) || [];
+      var searchKey = number.toLowerCase();
+      var numericKey = number.replace(/^0+/, "");
+      if (!numericKey) numericKey = "0";
+
+      var results = resultsByNumber.get(searchKey) || resultsByNumber.get(numericKey) || [];
+
       if (!results.length) {
         branchInput.value = "برجاء طباعة الكارنيهات";
         branchInput.style.color = "#dc2626";
-        status.textContent = "رقم العضوية غير موجود في العمود A";
+        status.textContent = "رقم العضوية غير موجود في الشيت";
         status.style.color = "#dc2626";
         return;
       }
@@ -223,11 +247,11 @@
       status.textContent = "تم العثور على " + results.length + " نتيجة في الشيت";
       status.style.color = "#16a34a";
       renderResults(resultsBox, results, number);
-    }).catch(function () {
+    }).catch(function (err) {
       if (currentRequest !== requestNumber) return;
       branchInput.value = "برجاء طباعة الكارنيهات";
       branchInput.style.color = "#dc2626";
-      status.textContent = "تعذر تحميل Cards_2026.xlsx";
+      status.textContent = "تعذر قراءة ملف البيانات";
       status.style.color = "#dc2626";
     });
   }
