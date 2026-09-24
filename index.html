@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" type="image/png" href="./favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./wadi-favicon-192.png">
+<title>October 1 - Wadi Degla | Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+ min-height:100vh;
+ background:#0A0A0A;
+ background-image:radial-gradient(700px 400px at 50% 0%, rgba(255,199,0,0.18), transparent 70%), repeating-linear-gradient(135deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 20px);
+ display:flex;align-items:center;justify-content:center;
+ font-family:'Inter',sans-serif;color:#fff;padding:16px;
+}
+.frame{
+ width:100%;max-width:430px;
+ background:linear-gradient(180deg, #1A1A1A 0%, #101010 100%);
+ border:1px solid rgba(255,199,0,0.22);
+ border-radius:28px;
+ padding:26px 24px 18px;
+ position:relative;
+ box-shadow:0 0 0 1px rgba(255,199,0,0.08), 0 30px 90px rgba(0,0,0,0.9);
+ overflow:hidden;
+}
+.logo-glow{
+ position:absolute;top:10px;left:50%;transform:translateX(-50%);
+ width:180px;height:180px;background:radial-gradient(circle, rgba(255,199,0,0.35) 0%, rgba(255,199,0,0.12) 35%, transparent 70%);
+ filter:blur(2px);pointer-events:none;
+}
+.logo-box{
+ position:relative;z-index:2;
+ width:120px;height:120px;margin:0 auto 16px;
+ display:flex;align-items:center;justify-content:center;
+}
+.logo-box img{
+ width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 20px rgba(255,199,0,0.5));
+}
+.badge{ margin:0 auto;display:flex;align-items:center;justify-content:center;gap:10px;
+ border:1px solid rgba(255,199,0,0.28);background:rgba(255,199,0,0.07);
+ color:#FFC700;border-radius:999px;padding:8px 18px;
+ font-size:11px;letter-spacing:3px;font-weight:800;
+ width:fit-content;
+}
+.badge i{width:8px;height:8px;background:#FFC700;border-radius:50%;display:inline-block;box-shadow:0 0 8px #FFC700}
+h1{text-align:center;margin-top:14px;font-size:32px;font-weight:900;line-height:1.1;letter-spacing:-0.5px}
+h1 span{color:#FFC700}
+.welcome{text-align:center;color:#777;margin-top:8px;font-size:14px;font-family:Cairo}
+.divider{display:flex;align-items:center;gap:14px;margin:18px 0 20px;color:#3a3410}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg, transparent, rgba(255,199,0,0.15), transparent)}
+.label{font-size:11px;letter-spacing:2.5px;color:#666;font-weight:800;margin:18px 0 10px;display:flex;justify-content:space-between}
+.input-wrap{ position:relative;background:#1E1E1E;border:1.5px solid #2B2B2B;border-radius:16px;height:54px; display:flex;align-items:center;padding:0 14px;transition:.2s;}
+.input-wrap:focus-within{border-color:#FFC700;box-shadow:0 0 0 3px rgba(255,199,0,0.12)}
+.input-wrap input{ flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:15px; font-family:Inter;}
+.input-wrap input::placeholder{color:#555}
+.icon{color:#FFC700;margin-right:10px;display:flex}
+.eye{background:none;border:none;color:#666;cursor:pointer;padding:4px;display:flex}
+.check-row{display:flex;align-items:center;justify-content:space-between;margin:18px 2px}
+.check{display:flex;align-items:center;gap:10px;font-size:14px;color:#888;cursor:pointer;user-select:none}
+.check-box{width:20px;height:20px;border-radius:6px;border:1.5px solid #333;background:#1E1E1E;display:flex;align-items:center;justify-content:center;transition:.2s}
+.check.active .check-box{background:#FFC700;border-color:#FFC700;color:#000}
+.secure{font-size:10px;letter-spacing:2px;color:#444}
+.btn{ width:100%;height:56px;border:none;border-radius:16px; background:linear-gradient(90deg, #FFC700 0%, #FFB000 100%); color:#000;font-weight:900;letter-spacing:1.5px;font-size:14px; display:flex;align-items:center;justify-content:center;gap:12px; cursor:pointer;box-shadow:0 8px 24px rgba(255,199,0,0.35);transition:.15s;}
+.btn:hover{transform:translateY(-1px);box-shadow:0 12px 32px rgba(255,199,0,0.45)}
+.btn .arrow{width:28px;height:28px;background:rgba(0,0,0,0.12);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+.foot{display:flex;align-items:center;gap:12px;margin-top:20px;color:#333;font-size:10px;letter-spacing:2px;justify-content:center}
+.foot::before,.foot::after{content:'';width:28px;height:1px;background:#2A2A2A}
+.err{display:none;background:rgba(255,60,60,0.1);border:1px solid rgba(255,60,60,0.25);color:#ff6b6b;border-radius:10px;padding:10px;text-align:center;font-size:13px;margin-bottom:12px}
+.success{display:none;text-align:center;padding:20px 0}
+.success .bigcheck{ width:90px;height:90px;margin:0 auto 18px;border-radius:50%; background:linear-gradient(180deg, #FFC700, #FFA500); display:flex;align-items:center;justify-content:center; font-size:48px;color:#000;box-shadow:0 0 50px rgba(255,199,0,0.5);}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+</style>
+</head>
+<body>
+<div class="frame" id="mainFrame">
+<div class="logo-glow"></div>
+<div id="loginView">
+  <div class="logo-box">
+    <img src="./favicon.png" alt="Wadi Degla" onerror="this.src='./wadi-favicon-192.png'; this.onerror=function(){this.src='https://cdn-icons-png.flaticon.com/512/5968/5968705.png';}">
+  </div>
+  <div class="badge"><i></i> OCTOBER 1 BRANCH</div>
+  <h1>Cards Delivery <span>System</span></h1>
+  <div class="welcome">Welcome Back • مرحباً بعودتك</div>
+  <div class="divider" style="justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3z" stroke="#665500" stroke-width="1.5"/></svg></div>
+  <div id="err" class="err">❌ اسم المستخدم أو كلمة المرور غير صحيحة</div>
+  <div class="label">USERNAME</div>
+  <div class="input-wrap" id="uWrap">
+    <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFC700" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+    <input id="username" type="text" placeholder="Andrew or October1" autocomplete="username">
+  </div>
+  <div class="label" style="margin-top:16px"><span>PASSWORD</span></div>
+  <div class="input-wrap" id="pWrap">
+    <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password">
+    <button class="eye" onclick="toggle()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+  </div>
+  <div class="check-row">
+    <div class="check active" id="rem" onclick="toggleRem()"><div class="check-box">✓</div> Remember me</div>
+    <div class="secure">SECURE LOGIN</div>
+  </div>
+  <button class="btn" onclick="login()">LOGIN TO SYSTEM <span class="arrow">→</span></button>
+  <div class="foot">BRANCH SECURED • WD CLUBS</div>
+</div>
+
+<div id="successView" class="success">
+  <div class="bigcheck">✓</div>
+  <h2 style="font-size:28px;font-weight:900">تم تسجيل الدخول بنجاح</h2>
+  <div id="roleText" style="color:#FFC700;letter-spacing:3px;font-size:12px;font-weight:800;margin-top:8px">OCTOBER 1 BRANCH • مرحباً بك</div>
+  <div style="margin-top:20px;background:#1A1A1A;border:1px solid rgba(255,199,0,0.12);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;justify-content:center">
+    <div style="width:22px;height:22px;border:2.5px solid #FFC700;border-top-color:transparent;border-radius:50%;animation:sp 0.7s linear infinite"></div>
+    <span style="color:#777;font-size:14px">جاري تحويلك للنظام...</span>
+  </div>
+  <div style="height:4px;background:#222;border-radius:99px;overflow:hidden;margin-top:16px"><div id="bar" style="height:100%;width:0%;background:#FFC700;transition:width 2s linear"></div></div>
+</div>
+</div>
+<script>
+const USERS = [
+  { username_hash: 'd979885447a413abb6d606a5d0f45c3b7809e6fde2c83f0df3426f1fc9bfed97', password_hash: 'f4f626dddc12e1f9349f09ef1afd9ae2931687a669acb7665e46024c41d8c48f', role: 'admin', display: 'Admin • Andrew' },
+  { username_hash: '3d2fa30fc7676bf9bae45099a2b429436c52bc6484446ff1888cb2ed63293845', password_hash: '269b008586d144e42331378a285c35cb3bb79155cdf52e502ae286557b4f2606', role: 'staff', display: 'Staff • October1' }
+];
+async function digest(value){const bytes=new TextEncoder().encode(value);const hash=await crypto.subtle.digest('SHA-256',bytes);return Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');}
+let rem=true;
+function toggleRem(){rem=!rem;document.getElementById('rem').classList.toggle('active',rem)}
+function toggle(){const p=document.getElementById('password');p.type=p.type==='password'?'text':'password';}
+async function login(){
+ const u=document.getElementById('username').value.trim().toLowerCase();
+ const p=document.getElementById('password').value;
+ const err=document.getElementById('err');
+ const uw=document.getElementById('uWrap');
+ const pw=document.getElementById('pWrap');
+ err.style.display='none';uw.style.borderColor='#2B2B2B';pw.style.borderColor='#2B2B2B';
+ if(!u||!p){err.textContent='❌ من فضلك ادخل البيانات';err.style.display='block';return;}
+ const [userHash,passHash]=await Promise.all([digest(u),digest(p)]);
+ const matched=USERS.find(x=>x.username_hash===userHash&&x.password_hash===passHash);
+ if(matched){
+   try{
+     sessionStorage.setItem('wd_october1_auth','true');
+     sessionStorage.setItem('wd_role',matched.role);
+     sessionStorage.setItem('wd_username',u);
+     if(rem){
+       localStorage.setItem('wd_october1_auth','true');
+       localStorage.setItem('wd_role',matched.role);
+       localStorage.setItem('wd_username',u);
+     }else{
+       localStorage.removeItem('wd_october1_auth');
+       localStorage.removeItem('wd_role');
+     }
+   }catch(e){}
+   document.getElementById('loginView').style.display='none';
+   document.getElementById('successView').style.display='block';
+   document.getElementById('roleText').textContent=matched.display;
+   setTimeout(function(){document.getElementById('bar').style.width='100%'},80);
+   setTimeout(function(){location.href='office.html'},1200);
+ }else{
+   err.textContent='❌ اسم المستخدم أو كلمة المرور غير صحيحة';
+   err.style.display='block';
+   uw.style.borderColor='#ff4444';pw.style.borderColor='#ff4444';
+   document.getElementById('mainFrame').style.animation='shake .3s';
+   setTimeout(function(){document.getElementById('mainFrame').style.animation=''},300);
+ }
+}
+document.addEventListener('keydown',function(e){if(e.key==='Enter')login();});
+</script>
+</body>
+</html>

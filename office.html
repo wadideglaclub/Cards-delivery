@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cards Delivery - October 1</title>
+  <link rel="icon" type="image/png" href="./favicon.png">
+  <style>table td,table th{text-align:center!important;vertical-align:middle}</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    (function () {
+      var auth = sessionStorage.getItem('wd_october1_auth') || localStorage.getItem('wd_october1_auth');
+      if (auth !== 'true') { location.replace('./index.html'); }
+      try{
+        var roleLocal = localStorage.getItem('wd_role');
+        if(roleLocal && !sessionStorage.getItem('wd_role')){
+          sessionStorage.setItem('wd_role', roleLocal);
+          sessionStorage.setItem('wd_username', localStorage.getItem('wd_username')||'');
+        }
+      }catch(e){}
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+  <script src="./texts.js"></script>
+  <script src="./sync.js"></script>
+  <script src="./lookup.js"></script>
+  <script src="./role-guard.js"></script>
+  <script src="./admin.js" defer></script>
+  <script src="./logout.js" defer></script>
+  <script src="./status-patch.js" defer></script>
+</body>
+</html>
